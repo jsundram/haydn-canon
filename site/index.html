@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Canon within a Canon: Appendix</title>
+
+    <!-- js/css links from jsfiddle (https://jsfiddle.net/gordonwoodhull/5ztavmjy/2)
+         linked from dc.js docs (https://dc-js.github.io/dc.js/)
+    -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/dc@4.2.7/dist/style/dc.css"/>
+    <script src="https://unpkg.com/d3@5.16.0/dist/d3.js"></script>
+    <script src="https://unpkg.com/crossfilter2@1.4.8/crossfilter.js"></script>
+    <script src="https://unpkg.com/dc@4.2.7/dist/dc.js"></script>
+
+    <style>
+        /* TODO: Styles*/
+        #dataTable table {
+            width: 100%; /* Adjust the width as needed */
+            border-collapse: separate;
+            border-spacing: 10px 0; /* Adjust the horizontal and vertical spacing */
+        }
+
+        #dataTable th, #dataTable td {
+            padding-left: 10px; /* Adjust padding for table cells */
+            text-align: left; /* Adjust text alignment as needed */
+        }
+        .dc-table-group {
+            background: #dddddd;
+        }
+
+        .charts-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-items: flex-start;
+        }
+
+        .chart-container {
+            display: flex;
+            flex-direction: column; /* Stack the h3 and div vertically */
+        }
+
+        .chart-large {
+            flex: 2;
+            min-width: 1000px;
+        }
+
+        .chart-small {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .chart-container h3 {
+            margin: 0 0 10px 0; /* Adjust the margin as needed */
+            text-align: left; /* Optional: Center-align the title */
+        }
+        sub {
+            font-style: italic;
+        }
+        .chart-header {
+            display: flex;
+            align-items: center; /* Align items vertically */
+            justify-content: space-between; /* Space out the button and the title */
+        }
+
+        .chart-header h3 {
+            margin: 0;
+            flex-grow: 1; /* Allow the title to take up the available space */
+        }
+
+        #sortButton {
+            padding: 5px 10px; /* Adjust the padding to make the button smaller */
+            margin-left: 10px; /* Optional: Add some space between the button and the title */
+            margin-right:50px;
+        }
+
+        .dc-chart g.row text {
+            fill: #000; 
+        }
+        .dc-chart g._10 text {
+            fill: #fff; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="mystats" class="dc-data-count" style="float: right; margin-top: 0">
+       <span class="filter-count"></span>
+            selected out of 
+        <span class="total-count"></span>
+        | 
+        <a href = "javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+    </div>
+
+    <header>
+        <h1>Exploring a Canon within a Canon</h1>
+        <sub>Data from <a href="http://caseymullin.com/index.php">Casey Mullin's</a> Master's Thesis <a href="https://cedar.wwu.edu/cgi/viewcontent.cgi?article=2108&context=wwuet">A Canon Within a Canon: The Influence of the 30 berühmte Quartette on the Contemporary Reception of Haydn’s String Quartets</a></sub>
+    </header>
+    <br/>
+    <div class="charts-container">
+        <div class="chart-container chart-large">
+            <div class="chart-header">
+                <h3>Catalog Number</h3>
+                <button id="sortButton">Sort by Recording Count</button>
+            </div>
+            <div id="catalogNumberChart"></div>
+        </div>
+        <div class="chart-container chart-small">
+            <h3>Peters Volume</h3>
+            <div id="petersChart"></div>
+        </div>
+    </div>
+
+    <h3>Ensemble</h3>
+    <div id="ensembleChart"></div>
+
+    <div class="charts-container">
+        <div class="chart-container chart-large">
+            <h3>Year</h3>
+            <div id="yearChart"></div>
+        </div>
+        <div class="chart-container chart-small">
+            <h3>Record Label</h3>
+            <div id="labelChart"></div>
+        </div>
+    </div>
+
+    <h3>Data</h3>
+    <div id="dataTable"></div>
+
+    <script>
+        // Load your data
+        d3.csv("./recordings.csv").then(function(data) {
+            // Preprocess data (parse dates, numbers, etc.)
+            window.data = data;
+            // catalog to peters lookup
+            const C2P = new Map(data.map(d => [d.Catalog, d.Peters]))
+
+            // TODO: apply this to the data?
+            let date = d => new Date(+d.Date, 0, 1);
+
+            // Set up Crossfilter
+            var ndx = crossfilter(data);
+
+            // Define dimensions
+            var catalogNumDim = ndx.dimension(d => d.Catalog);
+            var ensembleDim = ndx.dimension(d => d.Ensemble);
+            var yearDim = ndx.dimension(date);
+            var eraDim = ndx.dimension(d => date(d) < cutoff ? 0 : 1);
+            var labelDim = ndx.dimension(d => d.Label);
+            var petersDim = ndx.dimension(d => d.Peters);
+
+            // Define groups
+            var catalogNumGroup = catalogNumDim.group();
+            var ensembleGroup = ensembleDim.group().reduceCount();
+            var yearGroup = yearDim.group().reduceCount();
+            var eraGroup = eraDim.group().reduceCount()
+            var labelGroup = labelDim.group().reduceCount();
+            var petersGroup = petersDim.group().reduceCount();
+
+            window.dim = yearDim;
+            window.group = yearGroup;
+            // Create charts using DC.js
+            var countChart = dc.dataCount("#mystats");
+            countChart
+                .crossfilter(ndx)
+                .groupAll(ndx.groupAll());
+            
+            var catalogChart = dc.barChart("#catalogNumberChart");
+            // carved this out of RdYlBu 11, picking values I thought might look good.
+            const RdYlBu = ["#a50026", "#f46d43","#fdae61", "#74add1","#4575b4"];
+
+            catalogChart
+                .width(1000)
+                .height(200)
+                .dimension(catalogNumDim)
+                .group(catalogNumGroup)
+                .x(d3.scaleBand().domain(Array.from(C2P.keys())))
+                .xUnits(dc.units.ordinal)
+                .yAxisLabel("Count")
+                .elasticX(false)
+                // .colors(d3.scaleOrdinal().domain(d3.range(5)).range(d3.schemeRdYlBu[5]))
+                .colors(d3.scaleOrdinal().domain(d3.range(5)).range(RdYlBu))
+                .colorAccessor(d => +C2P.get(d.key))
+                .elasticY(true)
+                .title(d => `Opus ${d.key.replace(/^0+/, "").replace("_", "#")}:  ${d.value} recordings`)
+                .on('renderlet', function(chart) {
+                    // Rotate x-axis labels
+                    chart.selectAll('g.x text')
+                        .attr('transform', 'rotate(-90)')
+                        .attr('text-anchor', 'end')
+                        .attr('dx', '-.8em')
+                        .attr('dy', '-.4em');
+                })
+                .yAxis().ticks(4);
+
+            // Function to toggle sorting
+            var sortedByValue = false;
+            document.getElementById('sortButton').addEventListener('click', function() {
+                if (sortedByValue) {
+                    // Currently sorted by value, so sort by catalog number
+                    catalogChart
+                        .x(d3.scaleBand().domain(Array.from(C2P.keys())))
+
+                    this.textContent = 'Sort by Recording Count';
+                } else {
+                    // Currently sorted by catalog number, so sort by value
+                    // map d => d makes a copy (?) and avoids some visual bugginess 
+                    // that happens otherwise
+                    const domain = catalogChart.group().all().map(d => d)
+                        .sort((a, b) => a.value < b.value ? 1: -1)
+                        .map(d => d.key)
+
+                    catalogChart
+                        .x(d3.scaleBand().domain(domain))
+
+                    this.textContent = 'Sort by Catalog Number';
+                }
+                sortedByValue = !sortedByValue;
+                catalogChart.redraw(); 
+            });
+
+            var petersChart = dc.pieChart("#petersChart");
+            petersChart
+                .width(200)
+                .height(200)
+                .dimension(petersDim)
+                .group(petersGroup)
+                .ordering(d => +d.key)
+                .colorAccessor(d => +d.key)
+                .colors(d3.scaleOrdinal().domain(d3.range(5)).range(RdYlBu))
+
+            var xScale = d3.scaleLinear().domain([0, 200]).range([0, 1200]);
+            var ensembleChart = dc.rowChart("#ensembleChart");
+            ensembleChart
+                .width(1200)
+                .height(320)
+                .fixedBarHeight(20)
+                //.label(d => `${d.key}: ${d.value}`, false)
+                .dimension(ensembleDim)
+                .group(ensembleGroup)
+                .ordinalColors(['#3182bd'])
+                .cap(10)
+                .x(xScale)
+                .elasticX(false);
+
+            ensembleChart.on('pretransition', function(chart) {
+                chart.selectAll('.row text')
+                    .attr('text-anchor', 'start')
+                    .attr('dx', d => d.value < 100 ? `${d.value*6}px`: "10px")
+            });
+            var yearChart = dc.barChart("#yearChart");
+            var cutoff= new Date(1982, 0, 1);
+            yearChart
+                .width(1000)
+                .height(200)
+                .dimension(yearDim)
+                .group(yearGroup, "Post 1982")
+                .x(d3.scaleTime().domain(d3.extent(data, date)))
+                .elasticY(true)
+                .title(d => `${d.key}: ${d.value}`)
+                .yAxisLabel("Count")
+                .renderHorizontalGridLines(true)
+                .colorAccessor(d => d.key < cutoff ? 0 : 1)
+                .ordinalColors(d3.schemeCategory10.slice(0, 2))
+                .xUnits((start, end) => end.getFullYear() - start.getFullYear())
+                .legend(new dc.Legend().x(50).y(10).itemHeight(13))
+
+            // the legend label is weirdly aligned too high, fudge the position
+            // TODO: figure out how to add the second legend item that I want here... Pre-1982
+            yearChart.on('pretransition', c => c.selectAll('.dc-legend-item text').attr("y", 10))
+
+            var labelChart = dc.pieChart("#labelChart");
+            labelChart
+                .width(200)
+                .height(200)
+                .dimension(labelDim)
+                .group(labelGroup)
+                .cap(10)
+                .innerRadius(50)
+                .ordinalColors(d3.schemeCategory10);
+
+            // https://stackoverflow.com/questions/38901300/rotate-pie-label-in-dc-js-pie-chart
+            labelChart.on('renderlet', function (chart) {
+                chart.selectAll('text.pie-slice')
+                    .attr('transform', function(d) {
+                        var translate = d3.select(this).attr('transform');
+                        var ang = ((d.startAngle + d.endAngle) / 2 * 180 / Math.PI) % 360;
+                        ang += (ang < 180) ? -90: 90
+                        return translate + ' rotate(' + ang + ')';
+                    });
+            });
+            dc.dataTable("#dataTable")
+                .dimension(catalogNumDim)
+                .section(function(d) { return d.Catalog; })
+                .size(data.length)
+                .columns(['Catalog', 'Peters', 'Date', 'Ensemble', 'Label', 'Notes']);
+
+            dc.renderAll();
+        });
+    </script>
+</body>
+</html>
