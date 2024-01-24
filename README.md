@@ -52,18 +52,24 @@ See `parse.py`, which opens `canon.pdf` and produces 3 files in the directory `.
 1. `table8.csv`: the contents of table 8 (Total Freq by time period)
 1. `recordings.csv`: the appendix
 
-Then run `clean.py` which merges Peters volume information with the data in recordings.csv, and does some other cleanup, before producing `./viz/recordings.csv`, which should be suitable for visualization. Note: several (5) records in recordings.csv don't have valid / easily parsable Dates. They are skipped.
+Then run `clean.py` which merges Peters volume information with the data in recordings.csv, and does some other cleanup, before producing `./site/recordings.csv`, which should be suitable for visualization. Note: several (5) records in recordings.csv don't have valid / easily parsable Dates. They are skipped.
 
 ## Visualization 
-A [crossfilter]()-powered exploration of all recordings in './viz'
-    * [docs for dc.js](https://github.com/dc-js/dc.js/blob/develop/docs/api-latest.md) are helpful 
+A [crossfilter](https://github.com/crossfilter/crossfilter)-powered exploration of './site/recordings.csv'
+    * [docs for dc.js](https://github.com/dc-js/dc.js/blob/develop/docs/api-latest.md) are helpful.
 
+Currently just using a single file since it's small and self-contained. TODO: think about pulling in dependencies.
 
 ## Deploying:
-Deploy to github pages
+Deploy to github pages:
+1. On Local Machine
 ```
 git init -b main
 git add .gitignore
 # git add other selected files or just `git add .`
 gh repo create
 ```
+
+2. On Github, [configure custom action](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site#publishing-with-a-custom-github-actions-workflow)
+    * use static
+    * modify the script to point to ./site
