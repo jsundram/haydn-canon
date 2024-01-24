@@ -2,6 +2,7 @@ import csv
 import json
 import os
 
+
 def read_json(filename):
     with open(filename) as f:
         return json.load(f)
@@ -72,7 +73,7 @@ def clean(recordings):
 
 
 def main():
-    peters = read_json('../haydn_bingo/haydn_peters.json')
+    peters = read_json('./data/haydn_peters.json')
     recordings = read_csv('./extracted/appendix.csv')
 
     data = merge(peters, recordings)
@@ -80,7 +81,7 @@ def main():
 
     # This ignores the "Source" column, which ... I don't know what to do with anyway. :)
     cols = 'Catalog, Opus, Number, Peters, Date, Ensemble, Label, Issue, Notes'.split(', ')
-    write(data, './viz', 'recordings.csv', cols)
+    write(data, './site', 'recordings.csv', cols)
 
     return data
 
