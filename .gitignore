@@ -1,0 +1,6 @@
+# Python compilation stuff
+__pycache__/
+*.py[cod]
+
+# System Files
+.DS_Store
