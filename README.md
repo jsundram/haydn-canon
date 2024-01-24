@@ -59,6 +59,7 @@ A [crossfilter](https://github.com/crossfilter/crossfilter)-powered exploration 
     * [docs for dc.js](https://github.com/dc-js/dc.js/blob/develop/docs/api-latest.md) are helpful.
 
 Currently just using a single file since it's small and self-contained. TODO: think about pulling in dependencies.
+[https://jsundram.github.io/haydn-canon/](https://jsundram.github.io/haydn-canon/)
 
 ## Deploying:
 Deploy to github pages:
@@ -73,3 +74,7 @@ gh repo create
 2. On Github, [configure custom action](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site#publishing-with-a-custom-github-actions-workflow)
     * use static
     * modify the script to point to ./site
+3. Magically, a site exists!
+
+
+Please view the visualization here: https://jsundram.github.io/haydn-canon/
