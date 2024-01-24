@@ -63,4 +63,7 @@ A [crossfilter]()-powered exploration of all recordings in './viz'
 Deploy to github pages
 ```
 git init -b main
+git add .gitignore
+# git add other selected files or just `git add .`
+gh repo create
 ```
