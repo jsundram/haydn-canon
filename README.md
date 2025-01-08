@@ -1,11 +1,11 @@
 # README
 
 ## Background
-There's an interesting paper by Casey Mullin: [A Canon Within a Canon: The Influence of the 30 berühmte Quartette on the Contemporary Reception of Haydn's String Quartets](httpe://cedar.wwu.edu/cgi/viewcontent.cgi?article=2108&context=wwuet) that has some interesting data tables in it.
+There's an interesting paper by Casey Mullin: [A Canon Within a Canon: The Influence of the 30 berühmte Quartette on the Contemporary Reception of Haydn's String Quartets](httpe://cedar.wwu.edu/cgi/viewcontent.cgi?article=2108&context=wwuet) that explores the impact of the editorial decisions made by [Edition Peters Publishing House](https://en.wikipedia.org/wiki/Edition_Peters) of how to order Haydn's quartets into 4 volumes, and which of those quartets should be include in the 30 "Celebrated" (volumes 1 & 2), and which should (by implication) go uncelebrated. 
 
-I decided it would be great to pry them out of the pdf. And also that code would be easier than a lot of cut and paste.
+His measurement of this impact is on the volume of recordings each of these quartets has garnered. I thought this data might make for a great resource for visualization and exploration, so I decided to pry the data tables out of the pdf. The process and results are detailed below.
 
-I surveyed the python options:
+I surveyed the Python options so I could avoid a lot of tedious and error-prone cutting and pasting:
 * Tabula (relies on java install)
 * Camelot (doesn't)
 
